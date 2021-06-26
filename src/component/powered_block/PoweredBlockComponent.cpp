@@ -9,7 +9,6 @@ bool PoweredBlockComponent::addSource(CircuitSceneGraph *graph, CircuitTrackingI
     //todo
     return false;
 }
-
 bool PoweredBlockComponent::allowConnection(CircuitSceneGraph *pGraph, CircuitTrackingInfo &info, bool &directPowered) {
     auto typeID = info.mCurrent.mTypeID;
     if (typeID == CSTR) {
