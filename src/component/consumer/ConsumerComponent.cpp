@@ -45,7 +45,7 @@ bool ConsumerComponent::allowConnection(CircuitSceneGraph *pGraph, CircuitTracki
 
 bool ConsumerComponent::evaluate(CircuitSystem &, const BlockPos &) {
     int newStrength = 0;
-    for (auto &source:this->mSources.mComponents) {
+    for (auto &source: this->mSources.mComponents) {
         int currentStrength = source.mComponent->getStrength() - source.mDampening;
         if (source.mComponent->isHalfPulse() && !this->mAcceptHalfPulse) {
             currentStrength = 15 - source.mDampening;

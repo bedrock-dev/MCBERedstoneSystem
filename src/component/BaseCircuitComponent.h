@@ -13,9 +13,12 @@ class CircuitSystem;
 
 class CircuitSceneGraph;
 
+/*
+ * 红石原件的抽象接口类
+ */
 class BaseCircuitComponent {
 public:
-    CircuitComponentList mSources;
+    CircuitComponentList mSources; //所有为该红石原件供能的信号源裂变
     bool mIgnoreFirstUpdate = false;
     bool mIsFirstTime = true;
     BlockPos mChunkPosition;
@@ -29,13 +32,12 @@ public:
     bool mNeedsUpdate = false;
 
     //vtb+2
-
     virtual int getStrength() const {
         return this->mStrength;
     }
 
     //vtb+3
-    FACING getDirection() {
+    FACING getDirection() const {
         return this->mDirection;
     }
 
@@ -72,7 +74,7 @@ public:
     }
 
     //vtb+12
-    void removeSource(const BlockPos &pos, BaseCircuitComponent *component);
+    bool removeSource(const BlockPos &pos, BaseCircuitComponent *component);
 
     //vtb+13
     virtual bool addSource(CircuitSceneGraph *graph, CircuitTrackingInfo &info, int damping, bool &directPowered) {}
@@ -131,7 +133,6 @@ public:
 
 
     bool calculateValue(CircuitSystem *system);
-
 
     void clearFirstTimeFlag() { this->mIsFirstTime = false; }
 

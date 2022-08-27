@@ -7,7 +7,7 @@
 
 bool BaseCircuitComponent::calculateValue(CircuitSystem *system) {
     int newStrength = 0;
-    for (auto &source:this->mSources.mComponents) {
+    for (auto &source: this->mSources.mComponents) {
         auto currentStrength = source.mComponent->getStrength() - source.mDampening;
         if (source.mComponent->isHalfPulse())
             currentStrength = 15 - source.mDampening;
@@ -38,18 +38,37 @@ BaseCircuitComponent::trackPowerSourceDuplicates(const CircuitTrackingInfo &info
 
 }
 
-void BaseCircuitComponent::removeSource(const BlockPos &pos, BaseCircuitComponent *component) {
-    //todo
-
+/**
+ * 为当前原件删除一个信号源
+ * @param pos
+ * @param component
+ */
+bool BaseCircuitComponent::removeSource(const BlockPos &pos, BaseCircuitComponent *component) {
+    return this->mSources.removeSource(pos, component);
 }
 
+/*
+ * `component`是否是当前原件的一个信号源
+ */
 bool BaseCircuitComponent::hasSource(BaseCircuitComponent *component) { //NOLINT
     //todo
-    return true;
+    if (this->mSources.size() <= 0)return false;
+    for (auto &s: mSources.mComponents) {
+        if (s.mComponent == component)return true;
+        //信号源的信号源也算(前提是新仓元有子信号源)
+        if (s.mComponent->hasChildrenSource() && s.mComponent->hasSource(component))return true;
+    }
+    return false;
 }
 
+/**
+ * 是否有一个直接激活的信号源
+ * @return
+ */
 bool BaseCircuitComponent::hasDirectPower() {
-    //todo
+    for (auto &s: this->mSources) { //NOLINT
+        if (s.mDirectlyPowered)return true;
+    }
     return false;
 }
 
