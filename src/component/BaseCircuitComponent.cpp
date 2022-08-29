@@ -106,10 +106,10 @@ bool BaseCircuitComponent::allowConnection(CircuitSceneGraph *pGraph, CircuitTra
 }
 
 
-void
+bool
 BaseCircuitComponent::trackPowerSourceDuplicates(const CircuitTrackingInfo &info, int dampening, bool directlyPowered) {
-
-
+    //TODO
+    return false;
 }
 
 /**

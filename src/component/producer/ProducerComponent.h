@@ -35,6 +35,8 @@ public:
 
     void setStrength(int strength) override;
 
+    bool addSource(CircuitSceneGraph *graph, CircuitTrackingInfo &info, int damping,
+                   bool &directPowered) override { return true; }
 };
 
 class CapacitorComponent : public ProducerComponent {
@@ -43,6 +45,10 @@ class CapacitorComponent : public ProducerComponent {
     ComponentTypeID getInstanceType() override;
 
     FACING getPowerOutDirection() const { return FACING::NOT_DEFINED; }
+
+    bool addSource(CircuitSceneGraph *graph, CircuitTrackingInfo &info, int damping,
+                   bool &directPowered) override { return true; }
+
 };
 
 #endif //MCBEREDSTONESYSTEM_PRODUCERCOMPONENT_H

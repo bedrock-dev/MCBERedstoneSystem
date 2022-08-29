@@ -48,8 +48,9 @@ void RepeaterCapacitor::extendPulse() {
 
 }
 
-bool RepeaterCapacitor::addSource(CircuitSceneGraph *graph, const CircuitTrackingInfo *info, int *dampening,
-                                  bool *bDirectlyPowered) {
+bool
+RepeaterCapacitor::addSource(CircuitSceneGraph *graph, CircuitTrackingInfo &info, int damping, bool &directPowered) {
+
     //这两个参数不知道写反了没，因为不清楚中继器的默认方向是咋样的
     auto forward = this->getDirection() == info->mCurrent.mDirection; //信号到来的方向和中继器方向是否相反
     auto backward = invFacing(this->getDirection()) == info->mCurrent.mDirection; //信号是不是从输入端来的
@@ -63,8 +64,9 @@ bool RepeaterCapacitor::addSource(CircuitSceneGraph *graph, const CircuitTrackin
     if (backward || type == MCRR || type == MCCR) {
         //如果上一个原件是比较器或者中继器就两边也能输入（只有中继器和比较器能锁存中继器）
         //如果不是，只能从输入端输入
-        this->trackPowerSource(*info, *dampening, *bDirectlyPowered, backward);
+        this->trackPowerSource(info, dampening, bDirectlyPowered, backward);
     }
 
     return true;
 }
+

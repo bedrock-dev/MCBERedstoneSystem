@@ -30,7 +30,8 @@ class ComparatorCapacitor : public CapacitorComponent {
     bool allowConnection(CircuitSceneGraph *graph, const CircuitTrackingInfo *info, bool *bDirectlyPowered) {
         return info->mCurrent.mDirection == this->getPoweroutDirection();
     }
-    
+
+    bool addSource(CircuitSceneGraph *graph, CircuitTrackingInfo &info, int damping, bool &directPowered) override;
 
 };
 

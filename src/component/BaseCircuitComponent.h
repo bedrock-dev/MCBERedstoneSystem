@@ -114,7 +114,7 @@ public:
 
     virtual bool hasDirectPower();
 
-    void trackPowerSourceDuplicates(const CircuitTrackingInfo &info, int dampening, bool directlyPowered);
+    bool trackPowerSourceDuplicates(const CircuitTrackingInfo &info, int dampening, bool directlyPowered);
 
     bool canAllowPowerUp() const {
         return this->mAllowPowerUp;
