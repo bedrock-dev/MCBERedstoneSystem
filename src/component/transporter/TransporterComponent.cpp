@@ -3,11 +3,31 @@
 //
 
 #include "TransporterComponent.h"
+#include "component/powered_block/PoweredBlockComponent.h"
+#include "component/consumer/ConsumerComponent.h"
 
 bool
 TransporterComponent::addSource(CircuitSceneGraph *graph, CircuitTrackingInfo &info, int damping, bool &directPowered) {
-    //todo
-    return false;
+    auto type = info.mNearest.mTypeID;
+    if (type == CSPB && !directPowered)return false; //弱充能检查
+
+    if (type == CSPC || type == CSTR || type == CSCA) {
+        directPowered = true; //生产者 红石线 能量源
+    } else if (type == CSPB &&
+               dynamic_cast<PoweredBlockComponent *>(info.mNearest.mComponent)->isPromotedToProducer()) {
+        directPowered = true;
+    } else if (type && dynamic_cast<ConsumerComponent *>(info.mNearest.mComponent)->isPromotedToProducer()) {
+        directPowered = true;
+    } else {
+        auto dir = info.mCurrent.mDirection;
+        if (dir != NEG_Y && dir != invFacing(info.mNearest.mDirection)) {
+            //只有这一种情况是非直接激活
+            //连接没有被提升为生产者的充能方块or消费者,且两次输入的方向不同，这里还没找到情况，因此暂时不知道
+            directPowered = info.mCurrent.mDirection == info.mNearest.mDirection;
+        }
+    }
+
+    return this->trackPowerSource(info, ++damping, directPowered, 0);
 }
 
 bool TransporterComponent::allowConnection(CircuitSceneGraph *pGraph, CircuitTrackingInfo &info, bool &directPowered) {
@@ -18,7 +38,6 @@ bool TransporterComponent::allowConnection(CircuitSceneGraph *pGraph, CircuitTra
 
     auto type = info.mCurrent.mTypeID;
     if (type == CSTR) {
-
         auto dy = info.mCurrent.mPos.y - info.mNearest.mPos.y;
         /*
           * [current]
@@ -29,7 +48,6 @@ bool TransporterComponent::allowConnection(CircuitSceneGraph *pGraph, CircuitTra
             if (dy > 0  /**/) {
                 return false;
             } else {
-
 
 
             }

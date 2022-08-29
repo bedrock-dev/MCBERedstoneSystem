@@ -11,10 +11,11 @@ class PoweredBlockComponent : public BaseCircuitComponent {
     bool mPromotedToProducer = false;
     bool mAllowAsPowerSource = true;
     bool mIsFirstTime = false;
-
+public:
     bool addSource(CircuitSceneGraph *graph, CircuitTrackingInfo &info, int damping, bool &directPowered) override;
 
     bool allowConnection(CircuitSceneGraph *pGraph, CircuitTrackingInfo &info, bool &directPowered) override;
+
 
     bool canConsumerPower() override { return true; }
 
