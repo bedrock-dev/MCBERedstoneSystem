@@ -21,17 +21,33 @@ namespace {
      * @param face
      * @param queue
      */
-    void addToFillQueue(CircuitSceneGraph *graph, CircuitComponentList &powerAssociationMap,
-                        BaseCircuitComponent *newComponent, CircuitTrackingInfo &info, const BlockPos &newPos,
-                        FACING face, std::queue<CircuitTrackingInfo> &queue) {
+    void addToFillQueue(CircuitSceneGraph *graph, //电路图对象
+                        CircuitComponentList &powerAssociationMap, //正在进行搜索的信号源所支撑的原件表
+                        BaseCircuitComponent *newComponent,  //正在被搜索的原件
+                        CircuitTrackingInfo &info, //track info
+                        const BlockPos &newPos, //被搜索的原件位置
+                        FACING face, //nearest -> 被搜索原件的方向
+                        std::queue<CircuitTrackingInfo> &queue //队列
+    ) {
         auto newInfo = info;
+        //把当前被搜索的原件放到current位置
         initEntry(newInfo.mCurrent, newComponent, newPos);
+
         auto newDampening = info.mDampening;
         auto bDirectlyPowered = info.mDirectlyPowered;
+
+        //提前就更新映射表的图？
         powerAssociationMap.mComponents.emplace_back(newComponent, 0, newPos);
+
+
+        //如果nearest允许连接
         if (info.mNearest.mComponent->allowConnection(graph, newInfo, bDirectlyPowered)) {
             //把信号源加入找到的消费者的信号源列表中里面
+            //尝试添加成功
             if (newComponent->addSource(graph, newInfo, newDampening, bDirectlyPowered)) {
+                //更新track信息
+                //2nd <- near
+                //near <- cur
                 newInfo.m2ndNearest = info.mNearest;
                 initEntry(newInfo.mNearest, newComponent, newPos);
                 newInfo.mDampening = newDampening;
@@ -45,7 +61,7 @@ namespace {
     /**
      * 搜索消费者
      * BFS递归过程
-     * @param bs   信号源
+     * @param bs   句柄
      * @param powerAssociationMap  当前消费者列表
      * @param graph  全局电路图对象
      * @param trackInfo //递归信息
@@ -56,12 +72,14 @@ namespace {
     void searchForRelationshipAt(BlockSource *bs, CircuitComponentList &powerAssociationMap, CircuitSceneGraph *graph,
                                  CircuitTrackingInfo &trackInfo, FACING facing,
                                  const BlockPos &pos, //IDA中没有这个参数，但是加上更合理
-                                 std::queue<CircuitTrackingInfo> &stack) {
+                                 std::queue<CircuitTrackingInfo> &queue) {
         auto newPos = pos + facingToBlockPos(facing);
+
+
         auto newComponent = graph->getBaseComponent(newPos);
         //新方块加入队列
         if (pos != trackInfo.mNearest.mPos && pos != trackInfo.m2ndNearest.mPos) {
-            addToFillQueue(graph, powerAssociationMap, newComponent, trackInfo, newPos, facing, stack);
+            addToFillQueue(graph, powerAssociationMap, newComponent, trackInfo, newPos, facing, queue);
         }
     }
 
@@ -149,7 +167,7 @@ void CircuitSceneGraph::preSetupPoweredBlocks(const ChunkPos &pos) {
     auto chunkPosIter = this->mComponentsToReEvaluate.find(blockPos);
     if (chunkPosIter != mComponentsToReEvaluate.end()) {
         auto &blocks = chunkPosIter->second;
-        for (auto &block : blocks) {
+        for (auto &block: blocks) {
             auto comp = this->getBaseComponent(block);
             this->scheduleRelationshipUpdate(block, comp);
         }
@@ -289,7 +307,7 @@ void CircuitSceneGraph::processPendingAdds() {
 //从pending列表中取出等待移除的组件，将其从红石电路中移除
 void CircuitSceneGraph::processPendingRemoves() {
     //遍历等待移除的列表，进行真正的移除操作
-    for (auto &compEntry:this->mPendingRemoves) {
+    for (auto &compEntry: this->mPendingRemoves) {
         this->removeComponent(compEntry.mPos);
     }
     this->mPendingRemoves.clear();
@@ -297,7 +315,7 @@ void CircuitSceneGraph::processPendingRemoves() {
 
 /*
  * 集中处理需要更新信号源的原件(仅包括生产者和电容器,这个列表不会包含消费者)
- * @bs 方块源
+ * @bs BlockSource
  */
 void CircuitSceneGraph::processPendingUpdates(BlockSource *bs) {
     if (this->mPendingUpdates.empty())return;
@@ -322,7 +340,7 @@ void CircuitSceneGraph::processPendingUpdates(BlockSource *bs) {
 
 //移除稳定的关系
 void CircuitSceneGraph::removeStaleRelationships() {
-    for (auto &pendingItem:this->mPendingUpdates) {
+    for (auto &pendingItem: this->mPendingUpdates) {
         auto updatePos = pendingItem.second.mPos;
         //在全局电源关系图中找到该方块充当信号源的关系图
         auto powerAssociationIter = this->mPowerAssociationMap.find(updatePos);
@@ -346,50 +364,62 @@ void CircuitSceneGraph::removeStaleRelationships() {
 
 
 /*
- * 这个函数是真的给信号源寻找自己能提供能量的消费者的函数
- * @pos，信号源位置
+ * 这个函数是真的给生产者寻找自己能提供能量的消费者的函数
+ * @pos，生产者的位置
  * @producerTarget 生产者本身(包括电容器)
  */
 void
 CircuitSceneGraph::findRelationships(const BlockPos &pos, BaseCircuitComponent *producerTarget, BlockSource *pSource) {
 //在这里更新电路连接
-    std::queue<CircuitTrackingInfo> queue;
-    //创建一个初始的信息,距离是0,四个原件初试都是目标消费者
-    CircuitTrackingInfo startInfo(producerTarget, pos, 0);
 
     auto powerAssociationIter = this->mPowerAssociationMap.find(pos);
     //信号源列表没有这个信号源就加入
     if (powerAssociationIter == mPowerAssociationMap.end()) {
         this->mPowerAssociationMap.insert({pos, CircuitComponentList()});
     }
+//    //在信号源列表中找到这个信号源，前面刚插入，这里不可能没有，因为mc是单线程的
+//    auto sourceIter = this->mPowerAssociationMap.find(pos);
+//    assert(sourceIter != mPowerAssociationMap.end());
 
-    //在信号源列表中找到这个信号源，前面刚插入，这里不可能没有，因为mc是单线程的
-    auto sourceIter = this->mPowerAssociationMap.find(pos);
-    assert(sourceIter != mPowerAssociationMap.end());
+
+    std::queue<CircuitTrackingInfo> queue;
+    //创建一个初始的信息,距离是0,Entry内的4个entry都是当前生产者
+    //info内的信息 (power->...->2ndNear->near->cur)
+    CircuitTrackingInfo startInfo(producerTarget, pos, 0);
+
+
+    //开始做BFS
     //队列中加入这个信号源
     queue.push(startInfo);
     do {
-        //典型的DFS结构
+
+        //典型的BFS结构
         auto fillTrack = queue.front();
         queue.pop();
         //取出队列首部元素
         auto targetPos = fillTrack.mNearest.mPos;
 
-        auto currentComponent = fillTrack.mNearest.mComponent;
+        auto currentComponent = fillTrack.mNearest.mComponent; //这里暂时不知道为啥要用Nearest
         if (currentComponent) {
             int damping = fillTrack.mDampening;
             auto dir = fillTrack.mNearest.mComponent->getDirection();
+            //所有操作都要在damping在15格以内
             if (damping <= 15) {
+
+
+                /*这里是搜索充能方块并加入更新表*/
                 if (currentComponent->getBaseType() != CSPB) { //如果不是充能方块
                     for (auto facing = 0; facing < 6; facing++) {
                         //遍历六面的方块位置
                         auto newPos = targetPos + facingToBlockPos(static_cast<FACING>(facing));
 
-                        //如果当前电路中没有这个红石原件,这就是说明搜索到新的红石原件了
+                        //如果当前电路中没有这个红石原件,这就是说明搜索到充能方块了
                         if (!this->getBaseComponent(newPos) && pSource) {
+                            //猜测意思是区块已经加载，就更新充能方块信息
                             if (pSource->hasChunksAt(newPos, 0)) {
                                 this->addIfPoweredBlockAt(pSource, newPos);
                             } else {
+                                //如果区块没加载，就暂存等后面加载
                                 ChunkPos chunkPos = newPos.toChunkPos();
                                 this->addPositionToReEvaluate(chunkPos, targetPos);
                             }
@@ -398,6 +428,8 @@ CircuitSceneGraph::findRelationships(const BlockPos &pos, BaseCircuitComponent *
                 }
 
 
+
+                //这里是实际的电路构建连接
                 for (auto face = 0; face < 6; face++) {
                     searchForRelationshipAt(pSource, powerAssociationIter->second, this, fillTrack,
                                             static_cast<FACING>(face), targetPos, queue);
@@ -459,19 +491,19 @@ void CircuitSceneGraph::removeComponent(const BlockPos &pos) {
     }
 
     //从区块活跃元件表中移除
-    for (auto &item:this->mActiveComponentsPerChunk) {
+    for (auto &item: this->mActiveComponentsPerChunk) {
         item.second.removeSource(pos, component);
     }
 
     auto sources = component->mSources;
-    for (auto &item:sources.mComponents) {
+    for (auto &item: sources.mComponents) {
         auto updateComponent = item.mComponent;
         //重新计算这个原件的所有连接的原件
         this->scheduleRelationshipUpdate(item.mPos, item.mComponent);
     }
 
     //再次遍历全局元件表，删除相关依赖
-    for (auto &allComp:this->mAllComponents) {
+    for (auto &allComp: this->mAllComponents) {
         auto updateComponent = allComp.second.get();
         updateComponent->removeSource(pos, component);
         auto iter = updateComponent->mSources.mComponents.begin();
@@ -491,7 +523,7 @@ void CircuitSceneGraph::removeComponent(const BlockPos &pos) {
         auto updateComponent = this->getBaseComponent(position);
         if (updateComponent) {
             this->scheduleRelationshipUpdate(pos, updateComponent);
-            for (auto &item:updateComponent->mSources.mComponents) {
+            for (auto &item: updateComponent->mSources.mComponents) {
                 this->scheduleRelationshipUpdate(item.mPos, item.mComponent);
             }
         }
