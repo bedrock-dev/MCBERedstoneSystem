@@ -29,7 +29,8 @@ bool BaseCircuitComponent::calculateValue(CircuitSystem *system) {
 }
 
 /*
- * 这个函数是被信号源搜索到并准备添加新的信号源的时候执行对当前信号源的相关信息进行修正
+ * 这个函数是被信号源搜索到并准备添加新的信号源的时候执行对当前信号源的相关信息进行修正,
+ * data是描述连接的一种情况，比如中继器的描述的是 是从输入端进行输入还是锁存
  */
 bool BaseCircuitComponent::trackPowerSource(const CircuitTrackingInfo &info,  //NOLINT
                                             int dampening, bool directlyPowered, int data) {
@@ -124,7 +125,6 @@ bool BaseCircuitComponent::removeSource(const BlockPos &pos, BaseCircuitComponen
  * `component`是否是当前原件的一个信号源
  */
 bool BaseCircuitComponent::hasSource(BaseCircuitComponent *component) { //NOLINT
-    //todo
     if (this->mSources.size() <= 0)return false;
     for (auto &s: mSources.mComponents) {
         if (s.mComponent == component)return true;

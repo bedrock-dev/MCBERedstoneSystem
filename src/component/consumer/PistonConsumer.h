@@ -20,8 +20,6 @@ class PistonConsumer : public ConsumerComponent {
 
     void setBlockPowerFace(FACING facing);
 
-
-
 };
 
 

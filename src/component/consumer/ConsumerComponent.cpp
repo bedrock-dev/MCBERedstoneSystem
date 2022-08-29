@@ -6,34 +6,8 @@
 
 bool
 ConsumerComponent::addSource(CircuitSceneGraph *graph, CircuitTrackingInfo &info, int damping, bool &directPowered) {
-//    this->mPromotedToProducer = false;
-//    auto typeID = info.mNearest.mTypeID;
-//    auto promotedToProducer = false;
-//    if (this->mPropagatePower) {
-//        switch (typeID) {
-//            case CSPC:
-//                //todo
-//                break;
-//            case CSCA:
-//                //todo
-//                break;
-//            case CSTR:
-//                //todo
-//            default:
-//                if (typeID == CSPB && !directPowered)
-//                    return false;
-//                break;
-//        }
-//    } else if (typeID == CSPB && !directPowered) {
-//        return false;
-//    }
-//
-//    if (this->trackPowerSource(info, damping, directPowered, typeID == CSCC)) {
-//        return directPowered;
-//    } else {
-//        return false;
-//    }
-    //todo
+
+
     return false;
 }
 

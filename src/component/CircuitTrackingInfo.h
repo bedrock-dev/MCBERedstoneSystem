@@ -13,11 +13,13 @@ enum ComponentTypeID : uint64_t {
     CSSC = 1129534275,
     CSPB = 1129533506, //充能方块
     CSPC, //生产者
-    CSCA,
+    CSCA, //电容器
     CSTR, //传输者
     CSCC,
     MCPI, //活塞
-    MCPR //铁轨
+    MCPR, //铁轨
+    MCRR,
+    MCCR
 };
 
 

@@ -50,10 +50,7 @@ class RepeaterCapacitor : public CapacitorComponent {
         return info->mCurrent.mDirection == this->getPoweroutDirection();
     }
 
-    bool addSource(CircuitSceneGraph *graph, const CircuitTrackingInfo *info, int *dampening, bool *bDirectlyPowered) {
-        //todo
-        return true;
-    }
+    bool addSource(CircuitSceneGraph *graph, const CircuitTrackingInfo *info, int *dampening, bool *bDirectlyPowered);
 
     void setStrength(int strength) override {
         this->mPowered = strength != 0;
