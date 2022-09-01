@@ -10,11 +10,11 @@
 class ConsumerComponent : public BaseCircuitComponent {
 
     bool mSecondaryPowered = false;
-    bool mPropagatePower = false;
+    bool mPropagatePower = false; //是否能强充能后面的方块
     bool mPromotedToProducer = false;
-    bool mAcceptHalfPulse = false;
+    bool mAcceptHalfPulse = false; //是否接受半脉冲
 public:
-
+    
 
     bool addSource(CircuitSceneGraph *graph, CircuitTrackingInfo &info, int damping, bool &directPowered) override;
 

@@ -12,7 +12,7 @@ class CircuitSceneGraph;
 class ProducerComponent : public BaseCircuitComponent {
     int mNextStrength = 0;
     bool mStopPower = false;
-    bool mAttachedAllowed = false;
+    bool mAttachedAllowed = false; //是否允许附着在充能方块上给充能方块强充能 仅有红石块和阳光侦测器不能
 
 public:
     void allowAttachments(bool attached);
