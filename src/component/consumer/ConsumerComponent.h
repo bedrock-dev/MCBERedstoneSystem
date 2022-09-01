@@ -14,10 +14,13 @@ class ConsumerComponent : public BaseCircuitComponent {
     bool mPromotedToProducer = false;
     bool mAcceptHalfPulse = false; //是否接受半脉冲
 public:
-    
+
 
     bool addSource(CircuitSceneGraph *graph, CircuitTrackingInfo &info, int damping, bool &directPowered) override;
 
+    /*
+     * 是否运行当前原件和info中的mCurrent中的原件相连接
+     */
     bool allowConnection(CircuitSceneGraph *pGraph, CircuitTrackingInfo &info, bool &directPowered) override;
 
     bool canConsumerPower() override { return true; }
